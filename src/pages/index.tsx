@@ -27,6 +27,8 @@ const openai = new OpenAIApi(configuration);
 
 const history: string[][] = [];
 
+type Roles = "user" | "assistant" | "system";
+
 const Home: NextPage = () => {
   const { data: session } = useSession();
   const [pattern, setPattern] = useState("cross");
@@ -40,7 +42,7 @@ const Home: NextPage = () => {
 
   //OpenAI integration
   const [model, setModel] = useState("gpt-3.5-turbo");
-  const [roles, setRoles] = useState("user");
+  const [roles, setRoles] = useState<Roles>("user");
   const [submit, setSubmit] = useState(false);
 
   //request openai from api endpoint
@@ -74,9 +76,7 @@ const Home: NextPage = () => {
     setModel(event.target.value);
   };
 
-  const handleRoles = (event: {
-    target: { value: SetStateAction<string> };
-  }) => {
+  const handleRoles = (event: { target: { value: Roles } }) => {
     setRoles(event.target.value);
   };
 
@@ -350,7 +350,7 @@ const Home: NextPage = () => {
             <div>
               <div className="dark:text-white"> Model</div>
               <select
-                onChange={handleModels}
+                onChange={(e) => handleModels(e)}
                 className="focus:shadow-outline relative block w-full appearance-none rounded-lg border border-gray-400 bg-white px-4 py-2 pr-8 leading-tight shadow hover:border-gray-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               >
                 <option>gpt-3.5-turbo</option>
@@ -358,17 +358,17 @@ const Home: NextPage = () => {
                 <option>gpt-4</option>
               </select>
             </div>
-            <div>
+            {/* <div>
               <div className=" dark:text-white"> Role</div>
               <select
-                onChange={handleRoles}
+                onChange={(e:Roles) => handleRoles(e)}
                 className="focus:shadow-outline relative block w-full appearance-none rounded-lg border border-gray-400 bg-white px-4 py-2 pr-8 leading-tight shadow hover:border-gray-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               >
                 <option>user</option>
                 <option>assistant</option>
                 <option>system</option>
               </select>
-            </div>
+            </div> */}
             <div>
               <div className="flex flex-row ">
                 <div className="">Temperature</div>
