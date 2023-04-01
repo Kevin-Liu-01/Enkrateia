@@ -25,7 +25,7 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
-const history: string[][] = [];
+// const history: string[][] = [];
 
 type Roles = "user" | "assistant" | "system";
 
@@ -34,11 +34,12 @@ const Home: NextPage = () => {
   const [pattern, setPattern] = useState("cross");
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
-  const [temp, setTemp] = useState("0.7");
+  const [temp, setTemp] = useState("0");
   const [tokens, setTokens] = useState("256");
   const [freq, setFreq] = useState("0");
   const [top_p, setTop_P] = useState("1");
   const [translate, setTranslate] = useState(false);
+  const [history, setHistory] = useState([] as string[][]);
 
   //OpenAI integration
   const [model, setModel] = useState("gpt-3.5-turbo");
@@ -49,7 +50,7 @@ const Home: NextPage = () => {
   useEffect(() => {
     async function fetchData() {
       if (submit) {
-        console.log("Sending to API");
+        console.log("Sending to API using " + model);
         history.push([session?.user?.name || "Guest", message]);
         const completion = await openai.createChatCompletion({
           model: model,
@@ -60,10 +61,15 @@ const Home: NextPage = () => {
           frequency_penalty: parseInt(freq),
           presence_penalty: 0,
         });
-        history.push([
-          model,
-          completion?.data?.choices[0]?.message?.content || "",
-        ]);
+
+        setHistory(
+          // Replace the state
+          [
+            // with a new array
+            ...history, // that contains all the old items
+            [model, completion?.data?.choices[0]?.message?.content || ""], // and one new item at the end
+          ]
+        );
       }
     }
     void fetchData();
@@ -191,7 +197,7 @@ const Home: NextPage = () => {
             }
           >
             <button
-              className="absolute top-0 right-0 mt-[1.125rem]"
+              className="absolute top-0 right-0 mt-[1.125rem] mr-2"
               onClick={() => setTranslate(!translate)}
             >
               <XIcon className=" h-6 w-6" />
@@ -286,16 +292,12 @@ const Home: NextPage = () => {
                   </div>
                 </div>
 
-                <div className="scrollbar flex h-[100%] max-h-[calc(100vh-15.72rem)] grow flex-col overflow-y-scroll rounded-xl p-4 shadow-inner">
-                  <p className="mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200">
-                    Chat History
-                  </p>
-
+                <div className="scrollbar flex h-[100%] max-h-[calc(100vh-15.72rem)] grow flex-col-reverse overflow-y-scroll rounded-xl p-4 shadow-inner">
                   <div className="flex flex-col">
                     {history.map((msg, i) => (
                       <div
                         key={i}
-                        className="mt-4 flex flex-col rounded-lg bg-white p-4 dark:bg-gray-700"
+                        className="mt-3 flex flex-col rounded-lg bg-white p-4 dark:bg-gray-700"
                       >
                         <div className="flex items-center">
                           {chatSelector(msg[0] || "")}
@@ -308,7 +310,10 @@ const Home: NextPage = () => {
                         </p>
                       </div>
                     ))}
-                  </div>
+                  </div>{" "}
+                  <p className="mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200">
+                    Chat History
+                  </p>
                 </div>
               </div>
 
