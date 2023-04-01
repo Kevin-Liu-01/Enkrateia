@@ -13,7 +13,10 @@ const config = {
       colors: {
         gpt: "#63b55a",
         gptLight: "#80dc75",
+        gptLighter: "#d7ffd2",
+        gptLightest: "#f6fff4",
         gptDark: "#509648",
+        gptDarker: "#36742f",
       },
     },
   },

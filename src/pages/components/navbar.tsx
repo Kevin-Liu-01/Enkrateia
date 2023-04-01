@@ -11,9 +11,14 @@ import {
   LoginIcon,
   LogoutIcon,
   UserCircleIcon,
+  MenuIcon,
 } from "@heroicons/react/solid";
 
-const Navbar = (props: { pattern: string; patternBG: () => void }) => {
+const Navbar = (props: {
+  pattern: string;
+  patternBG: () => void;
+  menuHandler: () => void;
+}) => {
   const { data: session } = useSession();
   const { systemTheme, theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -31,7 +36,7 @@ const Navbar = (props: { pattern: string; patternBG: () => void }) => {
     if (currentTheme === "dark") {
       return (
         <button
-          className="flex h-full w-full items-center justify-center text-purple-500"
+          className="flex h-full w-full items-center justify-center text-gray-300 hover:text-purple-500"
           role="button"
           onClick={() => setTheme("light")}
         >
@@ -42,7 +47,7 @@ const Navbar = (props: { pattern: string; patternBG: () => void }) => {
     } else {
       return (
         <button
-          className="flex h-full w-full items-center justify-center  text-orange-300 hover:text-yellow-300"
+          className="flex h-full w-full items-center justify-center  text-black hover:text-orange-400"
           role="button"
           onClick={() => setTheme("dark")}
         >
@@ -73,13 +78,13 @@ const Navbar = (props: { pattern: string; patternBG: () => void }) => {
             width={500}
             className="inline-block h-16 w-auto"
           />
-          <h1 className="absolute top-0 mt-4 inline text-2xl font-extrabold tracking-tight dark:text-white lg:text-[3.5rem]">
+          <h1 className="absolute top-0 mt-4  hidden text-2xl font-extrabold tracking-tight dark:text-white lg:inline lg:text-[3.5rem]">
             <span className="">Enkrateia </span>
             <span className="text-gpt">GPT-4</span>
           </h1>
         </div>
         <div className="ml-auto flex ">
-          <div className="flex h-full items-center py-2 px-2 dark:text-white">
+          <div className="hidden h-full items-center py-2 px-2 dark:text-white lg:flex">
             <span className="text-xl">{session?.user?.name || "Guest"}</span>
             <div className="relative my-auto ml-2 inline h-10 w-10 rounded-full border-[1.5px] border-gray-900 dark:border-white">
               {session?.user.image ? (
@@ -107,11 +112,18 @@ const Navbar = (props: { pattern: string; patternBG: () => void }) => {
               <LoginIcon className="h-8 w-8" />
             )}
           </button>
+
           <button
             className="h-full border-l border-gray-600 px-2 duration-150 hover:bg-gray-300 dark:hover:bg-white/10"
             onClick={() => props.patternBG()}
           >
             <div className="h-8 w-8">{patternSelector()}</div>
+          </button>
+          <button
+            className="h-full border-l border-gray-600 px-2 font-semibold no-underline duration-150 hover:bg-gray-300 dark:hover:bg-white/10"
+            onClick={() => props.menuHandler()}
+          >
+            <MenuIcon className="h-8 w-8" />
           </button>
           <div className="relative flex h-full items-center justify-center border-l border-gray-600 px-2 duration-150 hover:bg-gray-300 dark:hover:bg-white/10">
             {renderThemeChanger()}

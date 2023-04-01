@@ -67,6 +67,11 @@ export const authOptions: NextAuthOptions = {
      * @see https://next-auth.js.org/providers/github
      */
   ],
+  theme: {
+    colorScheme: "auto", // "auto" | "dark" | "light"
+    brandColor: "", // Hex color code #33FF5D
+    logo: "/images/socrates.png", // Absolute URL to image
+  },
 };
 
 /**
