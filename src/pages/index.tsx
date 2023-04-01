@@ -186,21 +186,21 @@ const Home: NextPage = () => {
           <section
             className={
               translate
-                ? "scrollbar col-span-0 absolute z-30 hidden  max-h-[calc(100vh-4.05rem)] min-h-[calc(100vh-4.05rem)] translate-x-[-100%] flex-col overflow-y-scroll border-r border-r-gray-600 bg-gray-50 p-4 pr-2 text-sm font-[300] dark:border-r-gray-600 dark:bg-gray-800 lg:relative 2xl:text-base 2xl:font-[400]"
-                : "scrollbar absolute z-30 col-span-3  flex max-h-[calc(100vh-4.05rem)] min-h-[calc(100vh-4.05rem)] flex-col overflow-y-scroll border-r border-r-gray-600 bg-gray-50 p-4 pr-2 text-sm font-[300] dark:border-r-gray-600 dark:bg-gray-800 lg:relative 2xl:text-base 2xl:font-[400]"
+                ? "scrollbar col-span-0 absolute z-30 hidden max-h-[calc(100vh-4.05rem)] min-h-[calc(100vh-4.05rem)] translate-x-[-100%] flex-col overflow-y-scroll border-r border-r-gray-600 bg-gray-50 p-4 pr-2 text-sm font-[300] dark:border-r-gray-600 dark:bg-gray-800 lg:relative 2xl:text-base 2xl:font-[400]"
+                : "scrollbar absolute z-30 col-span-3 flex max-h-[calc(100vh-4.05rem)] min-h-[calc(100vh-4.05rem)] flex-col overflow-y-scroll border-r border-r-gray-600 bg-gray-50 p-4 pr-2 text-sm font-[300] dark:border-r-gray-600 dark:bg-gray-800 lg:relative 2xl:text-base 2xl:font-[400]"
             }
           >
             <button
-              className="absolute top-0 right-0 mt-4"
+              className="absolute top-0 right-0 mt-[1.125rem]"
               onClick={() => setTranslate(!translate)}
             >
-              <XIcon className=" h-8 w-8" />
+              <XIcon className=" h-6 w-6" />
             </button>
-            <h1 className="xs:text-4xl mb-4 mt-2 inline text-[2.4rem] font-extrabold tracking-tight dark:text-white lg:hidden ">
+            <h1 className="xs:text-4xl mb-4 mt-2 inline text-[2.2rem] font-extrabold tracking-tight dark:text-white lg:hidden ">
               <span className="">Enkrateia </span>
               <span className="text-gpt">GPT4</span>
             </h1>
-            <div className="text-2xl font-[600] lg:text-3xl">Get Started</div>{" "}
+            <div className="text-2xl font-[600] lg:text-2xl">Get Started</div>{" "}
             <br />
             <p className="">
               Enter an instruction or select a preset, and watch the API respond
