@@ -1,11 +1,21 @@
 import { type NextPage } from "next";
-import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
-import { useState, useEffect, SetStateAction } from "react";
+import {
+  useState,
+  useEffect,
+  type SetStateAction,
+  type FormEvent,
+} from "react";
 // import { api } from "~/utils/api";
-import { TrashIcon } from "@heroicons/react/outline";
-import { env } from "~/env.mjs";
-import Navbar from "~/components/navbar";
+import {
+  UserCircleIcon,
+  ServerIcon,
+  DocumentIcon,
+  AnnotationIcon,
+} from "@heroicons/react/outline";
+import { env } from "../env.mjs";
+import Navbar from "./components/navbar";
 import { Configuration, OpenAIApi } from "openai";
 
 const configuration = new Configuration({
@@ -13,10 +23,14 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
+const history: string[][] = [];
+
 const Home: NextPage = () => {
   const { data: session } = useSession();
   const [pattern, setPattern] = useState("cross");
   const [query, setQuery] = useState("");
+  const [message, setMessage] = useState("");
+  const [temp, setTemp] = useState("0.5");
 
   //OpenAI integration
   const [model, setModel] = useState("gpt-3.5-turbo");
@@ -24,37 +38,30 @@ const Home: NextPage = () => {
   const [submit, setSubmit] = useState(false);
 
   //request openai from api endpoint
-
+  console.log(history);
   useEffect(() => {
     async function fetchData() {
       if (submit) {
+        history.push([session?.user?.name || "You", message]);
         const completion = await openai.createChatCompletion({
           model: model,
-          messages: [{ role: "user", content: query }],
-          temperature: 0,
+          messages: [{ role: "user", content: message }],
+          temperature: parseInt(temp) || 1,
           max_tokens: 1000,
           top_p: 1,
           frequency_penalty: 0.5,
           presence_penalty: 0,
         });
         setResponse(completion?.data?.choices[0]?.message?.content || "");
+        history.push([
+          model,
+          completion?.data?.choices[0]?.message?.content || "",
+        ]);
       }
     }
-    fetchData();
+    void fetchData();
     setSubmit(false);
   }, [submit]);
-
-  const handleMessageChange = (event: {
-    target: { value: string | ((prevState: string) => string) };
-  }) => {
-    // 👇️ access textarea value
-    setQuery(event.target.value);
-  };
-
-  const handleReset = () => {
-    setQuery("");
-    setResponse("");
-  };
 
   const handleModels = (event: {
     target: { value: SetStateAction<string> };
@@ -74,7 +81,7 @@ const Home: NextPage = () => {
 
   const patternStyles = () => {
     const defaultPattern =
-      "z-5  absolute h-[100vh] w-[100vw] pattern-gray-300 pattern-bg-gray-600 pattern-opacity-20 pattern-size-8";
+      "z-5  absolute h-[100vh] w-[100vw] pattern-gray-500 dark:pattern-gray-500 pattern-bg-gray-300 dark:pattern-bg-gray-800 pattern-opacity-20 pattern-size-8";
     if (pattern === "cross") {
       return defaultPattern + " pattern-cross";
     } else if (pattern === "dots") {
@@ -84,87 +91,165 @@ const Home: NextPage = () => {
     }
   };
 
+  const handleQuery = (text: string) => {
+    setQuery(text);
+    setMessage(text);
+  };
+
+  const handleTempChange = (event: {
+    target: { value: SetStateAction<string> };
+  }) => {
+    setTemp(event.target.value);
+  };
+
+  const setSubmission = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmit(!submit);
+    setQuery("");
+  };
+
   return (
     <>
       <Navbar pattern={pattern} patternBG={patternBG} />
-      <main className="overflow-hidden bg-gradient-to-b from-gray-100 to-gray-200 font-general dark:from-gray-800 dark:to-gray-900">
-        <div className={patternStyles()}></div>
-        <div className="relative z-10 grid min-h-screen grid-cols-10">
-          <div className="col-span-3">Col1</div>
-          <div className="z-10 col-span-4 ml-4 mr-4 flex h-full w-full grow flex-col shadow-lg lg:rounded-3xl">
-            <p className="select-none font-semibold text-gray-400">CHATGPT:</p>
-            <div className="mb-4 overflow-hidden rounded-lg bg-gray-200 shadow-inner">
-              <div className="scrollbar max-h-40 overflow-y-scroll p-4 pb-4">
-                <div className="select-none">
-                  <div className="inline">
-                    <img
-                      src={
-                        session
-                          ? session.user.image
-                          : "https://media.istockphoto.com/id/1131164548/vector/avatar-5.jpg?s=612x612&w=0&k=20&c=CK49ShLJwDxE4kiroCR42kimTuuhvuo2FH5y_6aSgEo="
-                      }
-                      className="mr-2 inline h-5 w-5 rounded-full sm:mb-1 "
+      <main className="overflow-hidden bg-gradient-to-b from-gray-100 to-gray-200 font-general dark:from-gray-800 dark:to-gray-900 ">
+        <div className="relative z-10  grid min-h-[calc(100vh-4rem)] grid-cols-1 sm:grid-cols-12">
+          <div className="col-span-3 border-r border-r-gray-600 p-4 font-[300] dark:border-r-gray-600">
+            <div className="text-3xl font-[600]">Get Started</div> <br />
+            <p className="">
+              Enter an instruction or select a preset, and watch the API respond
+              with a completion that attempts to match the context or pattern
+              you provided.
+            </p>
+            <br />
+            <p className="">
+              You can control which model completes your request by changing the
+              model.
+            </p>
+            <br />
+            <div className="font-sm mb-3 text-sm font-[600] text-gpt">
+              KEEP IN MIND
+            </div>
+            <div className="ml-3 mb-3 flex flex-row text-sm">
+              <ServerIcon className="h-12 w-12" />
+              <div className="ml-4">
+                Use good judgement when writing inputs. This API is not free, so
+                results are forced to be reduced to {"<1000 tokens."}
+              </div>
+            </div>
+            <div className="ml-3 mb-3 flex flex-row text-sm">
+              <DocumentIcon className="h-12 w-12" />
+              <div className="ml-4">
+                Not all responses may be ideally formatted. The API does not
+                support markdown and as such, responses will be pure text.
+              </div>
+            </div>
+            <div className="ml-3 mb-3 flex flex-row text-sm">
+              <AnnotationIcon className="h-12 w-12" />
+              <div className="ml-4">
+                GPT-4 takes significantly longer to generate a response than
+                gpt-3.5-turbo. If you want to try out GPT-4, responses may take
+                longer than expected.
+              </div>
+            </div>
+          </div>
+          <div className="col-span-7 flex h-[100%] flex-col ">
+            <div className={patternStyles()}></div>
+            <div className="relative z-10 flex h-[100%] flex-col justify-between ">
+              <div className="h-[100%] border-r border-r-gray-600 p-4 dark:border-r-gray-600">
+                <p className="mb-2 select-none font-semibold text-gray-500 dark:text-white">
+                  CHATGPT:
+                </p>
+                <div className="flex items-center">
+                  {session?.user.image ? (
+                    <Image
+                      src={(session && session.user.image) || ""}
                       alt="avatar"
-                    ></img>
-                    <div className="inline select-none font-semibold text-gray-500">
-                      {session ? session.user.name : "Guest"}
-                      {": "}
-                    </div>
-                  </div>
-                  <span className="italic text-gray-400">{query}</span>
+                      className="mr-4 h-10 w-10 rounded-full"
+                      height={500}
+                      width={500}
+                    />
+                  ) : (
+                    <UserCircleIcon className="mr-2 inline h-10 w-10 rounded-full text-gray-800 dark:text-gray-400 sm:mb-1" />
+                  )}
+                  <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    {session && "Signed in as "}
+                    {session ? session.user.name : "Guest"}
+                  </p>
                 </div>
-                <div className=" relative mt-6">
-                  <div className="sm:flex ">
-                    <img
+                <div className="mt-4 rounded-lg bg-white p-4 dark:bg-gray-700">
+                  <div className="flex items-center">
+                    <Image
                       src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg"
-                      className="mb-0.5 mr-2 inline h-5 w-5 sm:mb-0 sm:mt-0.5"
+                      className="mb-0.5 mr-2 inline h-6 w-6 sm:mb-0 sm:mt-0.5"
                       alt="ChatGPT"
-                    ></img>
-                    <div className="inline select-none font-semibold text-gray-800">
+                      height={500}
+                      width={500}
+                    />
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                       {model}:
-                    </div>
+                    </p>
+                  </div>
+                  <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                    {response}
+                  </p>
+                </div>
+                <div className="scrollbar my-4 flex grow flex-col overflow-y-scroll rounded-lg bg-white p-4 dark:bg-gray-700">
+                  <p className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    Chat History
+                  </p>
 
-                    <div className="mt-2 flex text-gray-700 sm:ml-2 sm:mt-0">
-                      {response}
-                    </div>
+                  <div className="flex flex-col-reverse">
+                    {history.map((msg, i) => (
+                      <div key={i} className="flex flex-col">
+                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                          {msg[0]}
+                        </span>
+                        <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
+                          {msg[1]}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
+
+              <div className="border-t border-t-gray-600 bg-white p-4 dark:border-t-gray-600 dark:bg-gray-800">
+                <form
+                  onSubmit={(e) => setSubmission(e)}
+                  className="flex items-center"
+                >
+                  <input
+                    type="text"
+                    placeholder="Type a message..."
+                    className="w-full rounded-lg border border-gray-300 bg-gray-100 py-2 px-4 text-gray-900 focus:outline-none  focus:ring-2 focus:ring-gpt dark:border-gray-700 dark:bg-gray-600 dark:text-gray-200"
+                    value={query}
+                    onChange={(e) => handleQuery(e.target.value)}
+                  />
+                  <button
+                    type="submit"
+                    className="ml-4 flex items-center rounded-lg bg-gptLight py-2 pl-2 pr-4 text-white duration-150 ease-in-out hover:bg-gpt dark:bg-gpt dark:hover:bg-gptDark"
+                  >
+                    <Image
+                      src="https://cdn.cdnlogo.com/logos/c/38/ChatGPT.svg"
+                      className=" inline h-4 w-4 sm:mr-1"
+                      height={500}
+                      width={500}
+                      alt="ChatGPT"
+                    />
+                    <div className="hidden text-base text-gray-900 sm:inline">
+                      Send
+                    </div>
+                  </button>
+                </form>
+              </div>
             </div>
-            {response ? (
-              <button
-                className="mr-2 mb-2 rounded-xl border border-gray-300 bg-gray-200 p-2 px-3 duration-150 ease-in-out hover:bg-gray-300 sm:px-4"
-                onClick={() => handleReset()}
-              >
-                <TrashIcon className="mb-1 inline h-4 w-4 sm:mr-1" />
-                <span className="hidden sm:inline">Reset</span>
-              </button>
-            ) : (
-              <></>
-            )}
-            <div>
-              <textarea
-                id="message"
-                name="message"
-                value={query}
-                onChange={handleMessageChange}
-                className="h-24 w-full rounded-lg bg-gray-200 p-4 text-gray-900 shadow-inner focus:bg-gray-300 focus:outline-none"
-              />
-            </div>
-            <button
-              className="mb-2 mr-3 rounded-xl border border-green-300 bg-green-200 p-2 px-3 duration-150 ease-in-out hover:bg-green-300 sm:px-4"
-              onClick={() => setSubmit(!submit)}
-            >
-              <img
-                src="https://cdn.cdnlogo.com/logos/c/38/ChatGPT.svg"
-                className="mb-1 inline h-4 w-4 sm:mr-1"
-              ></img>
-              <div className="hidden text-gray-900 sm:inline">ChatGPT</div>
-            </button>
-            <div className="relative inline-block text-left text-black">
+          </div>
+          <div className="dark:bg-gray-800font-general relative z-10 col-span-2 bg-white p-4 dark:bg-gray-800 dark:text-white md:text-lg">
+            <div className=" inline-block text-left text-black">
+              <div className="dark:text-white"> Model</div>
               <select
                 onChange={handleModels}
-                className="focus:shadow-outline block w-full appearance-none rounded-xl border border-gray-400 bg-white px-4 py-2 pr-8 leading-tight shadow hover:border-gray-500 focus:outline-none"
+                className="focus:shadow-outline relative block w-full appearance-none rounded-xl border border-gray-400 bg-white px-4 py-2 pr-8 leading-tight shadow hover:border-gray-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               >
                 <option>gpt-3.5-turbo</option>
                 <option>gpt-4</option>
@@ -172,7 +257,7 @@ const Home: NextPage = () => {
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                 <svg
-                  className="h-4 w-4 fill-current"
+                  className="my-auto h-4 w-4 fill-current"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                 >
@@ -180,8 +265,21 @@ const Home: NextPage = () => {
                 </svg>
               </div>
             </div>
+            <div className="flex flex-row ">
+              <div className="">Temperature</div>
+              <div className="ml-auto pr-4">{temp}</div>
+            </div>
+
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={temp}
+              onChange={(e) => handleTempChange(e)}
+              className="slider w-full"
+            />
           </div>
-          <div className="col-span-3">Col1</div>
         </div>
       </main>
     </>

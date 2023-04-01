@@ -17,8 +17,8 @@
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import { type Session } from "next-auth";
 
-import { firestore } from "~/server/db";
-import { getServerAuthSession } from "~/server/auth";
+// import { firestore } from "~/server/db";
+import { getServerAuthSession } from "../../server/auth";
 
 type CreateContextOptions = {
   session: Session | null;
@@ -37,7 +37,7 @@ type CreateContextOptions = {
 const createInnerTRPCContext = (opts: CreateContextOptions) => {
   return {
     session: opts.session,
-    firestore: firestore,
+    // firestore: firestore,
   };
 };
 

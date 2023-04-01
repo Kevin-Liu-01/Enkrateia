@@ -12,6 +12,7 @@ export default function Document() {
           content="Enkrateia allows you to access the power of humanity's sum knowledge."
         />
         <meta content="./favicon.png" property="og:image" />
+        <meta content="./favicon.png" property="og:image" />
         <link rel="apple-touch-icon" href="./favicon.ico" />
         {/*
             Notice the use of %PUBLIC_URL% in the tags above.

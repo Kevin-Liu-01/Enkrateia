@@ -9,7 +9,7 @@ import GoogleProvider from "next-auth/providers/google";
 // import {FireStoreAdapter} from "next-auth/firestore-adapter";
 
 // import {firestore} from "~/server/db"
-import { env } from "~/env.mjs";
+import { env } from "../env.mjs";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
