@@ -30,7 +30,9 @@ const Home: NextPage = () => {
   const [pattern, setPattern] = useState("cross");
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
-  const [temp, setTemp] = useState("0.5");
+  const [temp, setTemp] = useState("0.7");
+  const [tokens, setTokens] = useState("256");
+  const [freq, setFreq] = useState("0");
 
   //OpenAI integration
   const [model, setModel] = useState("gpt-3.5-turbo");
@@ -46,10 +48,10 @@ const Home: NextPage = () => {
         const completion = await openai.createChatCompletion({
           model: model,
           messages: [{ role: "user", content: message }],
-          temperature: parseInt(temp) || 1,
-          max_tokens: 1000,
+          temperature: parseInt(temp),
+          max_tokens: parseInt(tokens),
           top_p: 1,
-          frequency_penalty: 0.5,
+          frequency_penalty: parseInt(freq),
           presence_penalty: 0,
         });
         setResponse(completion?.data?.choices[0]?.message?.content || "");
@@ -100,6 +102,18 @@ const Home: NextPage = () => {
     target: { value: SetStateAction<string> };
   }) => {
     setTemp(event.target.value);
+  };
+
+  const handleTokenChange = (event: {
+    target: { value: SetStateAction<string> };
+  }) => {
+    setTokens(event.target.value);
+  };
+
+  const handleFreqChange = (event: {
+    target: { value: SetStateAction<string> };
+  }) => {
+    setFreq(event.target.value);
   };
 
   const setSubmission = (event: FormEvent<HTMLFormElement>) => {
@@ -198,9 +212,9 @@ const Home: NextPage = () => {
                     Chat History
                   </p>
 
-                  <div className="flex flex-col-reverse">
+                  <div className="flex flex-col">
                     {history.map((msg, i) => (
-                      <div key={i} className="flex flex-col">
+                      <div key={i} className="mb-2 flex flex-col">
                         <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                           {msg[0]}
                         </span>
@@ -277,6 +291,35 @@ const Home: NextPage = () => {
               step="0.01"
               value={temp}
               onChange={(e) => handleTempChange(e)}
+              className="slider w-full"
+            />
+            <div className="flex flex-row ">
+              <div className="">Max Tokens</div>
+              <div className="ml-auto pr-4">{tokens}</div>
+            </div>
+
+            <input
+              type="range"
+              min="0"
+              max="1000"
+              step="10"
+              value={tokens}
+              onChange={(e) => handleTokenChange(e)}
+              className="slider w-full"
+            />
+
+            <div className="flex flex-row ">
+              <div className="">Frequency Penalty</div>
+              <div className="ml-auto pr-4">{freq}</div>
+            </div>
+
+            <input
+              type="range"
+              min="0"
+              max="1.0"
+              step="0.1"
+              value={freq}
+              onChange={(e) => handleFreqChange(e)}
               className="slider w-full"
             />
           </div>
