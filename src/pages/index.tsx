@@ -17,6 +17,7 @@ import {
   XIcon,
 } from "@heroicons/react/solid";
 import { env } from "../env.mjs";
+import Typewriter from "typewriter-effect";
 import Navbar from "./components/navbar";
 import { Configuration, OpenAIApi } from "openai";
 
@@ -39,7 +40,12 @@ const Home: NextPage = () => {
   const [freq, setFreq] = useState("0");
   const [top_p, setTop_P] = useState("1");
   const [translate, setTranslate] = useState(false);
+  const [debug, setDebug] = useState(false);
+  const [memory, setMemory] = useState(true);
+  const [speed, setSpeed] = useState(false);
+
   const [history, setHistory] = useState([] as string[][]);
+  const [font, setFont] = useState("font-general");
 
   //OpenAI integration
   const [model, setModel] = useState("gpt-3.5-turbo");
@@ -50,11 +56,22 @@ const Home: NextPage = () => {
   useEffect(() => {
     async function fetchData() {
       if (submit) {
-        console.log("Sending to API using " + model);
+        const context =
+          history.length >= 2 && memory
+            ? // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+              "The context for this conversation is as follows:" +
+              "\nMy Prompt:" +
+              history.slice(-3)[1] +
+              "\n Your Response:" +
+              history.slice(-2)[1] +
+              "\n My new prompt:" +
+              message +
+              "\n Your new response:"
+            : "";
         history.push([session?.user?.name || "Guest", message]);
         const completion = await openai.createChatCompletion({
           model: model,
-          messages: [{ role: roles, content: message }],
+          messages: [{ role: roles, content: context }],
           temperature: parseInt(temp),
           max_tokens: parseInt(tokens),
           top_p: parseInt(top_p),
@@ -67,7 +84,14 @@ const Home: NextPage = () => {
           [
             // with a new array
             ...history, // that contains all the old items
-            [model, completion?.data?.choices[0]?.message?.content || ""], // and one new item at the end
+            [
+              model,
+              completion?.data?.choices[0]?.message?.content || "",
+              temp,
+              tokens,
+              top_p,
+              freq,
+            ], // and one new item at the end
           ]
         );
       }
@@ -98,7 +122,7 @@ const Home: NextPage = () => {
 
   const patternStyles = () => {
     const defaultPattern =
-      "z-5 absolute h-[100vh] w-[100vw] pattern-gray-500 dark:pattern-gray-500 pattern-bg-gray-300 dark:pattern-bg-gray-800 pattern-opacity-20 pattern-size-8";
+      "z-5 absolute h-[100vh] w-[100vw] pattern-gray-500 dark:pattern-gray-500 pattern-bg-gray-300 dark:pattern-bg-gray-900 pattern-opacity-20 pattern-size-8 duration-150";
     if (pattern === "cross") {
       return defaultPattern + " pattern-cross";
     } else if (pattern === "dots") {
@@ -174,14 +198,27 @@ const Home: NextPage = () => {
     setTranslate(!translate);
   };
 
+  const fontInitializer = () => {
+    if (font === "font-general") {
+      setFont("font-satoshi");
+    } else if (font === "font-satoshi") {
+      setFont("font-azeret");
+    } else if (font === "font-azeret") {
+      setFont("font-clash");
+    } else {
+      setFont("font-general");
+    }
+  };
+
   return (
-    <>
+    <main className={font}>
       <Navbar
         pattern={pattern}
         patternBG={patternBG}
         menuHandler={menuHandler}
+        fontInitializer={fontInitializer}
       />
-      <main className="overflow-hidden bg-gradient-to-b from-gray-100 to-gray-200 font-general dark:from-gray-800 dark:to-gray-900 ">
+      <div className="overflow-hidden bg-gradient-to-b from-gray-100 to-gray-200 duration-150 dark:from-gray-800 dark:to-gray-900 ">
         <div
           className={
             translate
@@ -192,8 +229,8 @@ const Home: NextPage = () => {
           <section
             className={
               translate
-                ? "scrollbar col-span-0 absolute z-30 hidden max-h-[calc(100vh-4.05rem)] min-h-[calc(100vh-4.05rem)] translate-x-[-100%] flex-col overflow-y-scroll border-r border-r-gray-600 bg-gray-50 p-4 pr-2 text-sm font-[300] dark:border-r-gray-600 dark:bg-gray-800 lg:relative 2xl:text-base 2xl:font-[400]"
-                : "scrollbar absolute z-30 col-span-3 flex max-h-[calc(100vh-4.05rem)] min-h-[calc(100vh-4.05rem)] flex-col overflow-y-scroll border-r border-r-gray-600 bg-gray-50 p-4 pr-2 text-sm font-[300] dark:border-r-gray-600 dark:bg-gray-800 lg:relative 2xl:text-base 2xl:font-[400]"
+                ? "scrollbar absolute z-30 flex max-h-[calc(100vh-4.05rem)] min-h-[calc(100vh-4.05rem)] translate-x-[-100%] flex-col overflow-y-scroll border-r border-r-gray-600 bg-gray-50 p-4 pr-2 text-sm font-[300] duration-150 dark:border-r-gray-600 dark:bg-gray-800 lg:relative lg:hidden 2xl:text-base 2xl:font-[400]"
+                : "scrollbar absolute z-30 flex max-h-[calc(100vh-4.05rem)] min-h-[calc(100vh-4.05rem)] translate-x-0 flex-col overflow-y-scroll border-r border-r-gray-600 bg-gray-50 p-4 pr-2 text-sm font-[300] duration-150 dark:border-r-gray-600 dark:bg-gray-800 lg:relative lg:col-span-3 2xl:text-base 2xl:font-[400]"
             }
           >
             <button
@@ -202,11 +239,11 @@ const Home: NextPage = () => {
             >
               <XIcon className=" h-6 w-6" />
             </button>
-            <h1 className="xs:text-4xl mb-4 mt-2 inline text-[2.2rem] font-extrabold tracking-tight dark:text-white lg:hidden ">
+            <h1 className="xs:text-4xl mb-4 mt-2 inline text-[2.2rem] font-extrabold tracking-tight duration-75 dark:text-white lg:hidden">
               <span className="">Enkrateia </span>
               <span className="text-gpt">GPT4</span>
             </h1>
-            <div className="text-2xl font-[600] lg:text-2xl">Get Started</div>{" "}
+            <div className="text-2xl font-[600] lg:text-2xl">Get Started</div>
             <br />
             <p className="">
               Enter an instruction or select a preset, and watch the API respond
@@ -244,20 +281,20 @@ const Home: NextPage = () => {
                 longer than expected.
               </div>
             </div>
-            <div className=" mt-auto rounded-lg border-[1.5px] border-gpt bg-white p-4 dark:bg-gray-800">
+            <div className=" mt-auto rounded-lg border-[1.5px] border-gpt bg-white p-4 duration-150  dark:bg-gray-800">
               <div className="flex items-center ">
-                <span className="mr-2 rounded bg-gptLighter px-2.5 py-0.5 text-sm font-semibold text-gptDark dark:bg-gptLight dark:text-gptDarker">
+                <span className="mr-2 rounded bg-gptLighter px-2.5 py-0.5 text-sm font-semibold text-gptDark duration-150 dark:bg-gptLight dark:text-gptDarker">
                   Beta
                 </span>
               </div>
-              <p className="my-3 text-sm text-slate-900 dark:text-slate-400">
+              <p className="my-3 text-sm text-slate-900 duration-150 dark:text-slate-400">
                 Welcome to Enkrateia! Enkrateia allows you to access the OpenAI
                 APIs of the latest GPT-3 and GPT-4 models. You can generate text
                 from a prompt or pattern, leveraging the cutting-edge
                 capabilities of these advanced language models.
               </p>
               <a
-                className="text-sm text-slate-900 underline hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-300"
+                className="text-sm text-slate-900 underline duration-150 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-300"
                 href="https://openai.com/about"
               >
                 Learn about OpenAI and ChatGPT
@@ -268,27 +305,33 @@ const Home: NextPage = () => {
           <section className="col-span-7 flex max-h-[calc(100vh-4.05rem)] min-h-[calc(100vh-4.05rem)] flex-col ">
             <div className={patternStyles()}></div>
             <div className="relative z-10 flex h-[100%] flex-col justify-between ">
-              <div className="h-[100%] border-r border-r-gray-600 dark:border-r-gray-600">
-                <div className="border-b border-b-gray-600 bg-gray-50 p-4 dark:bg-gray-800">
-                  <p className="mb-2 select-none text-2xl font-semibold text-gray-800 dark:text-white">
-                    Sandbox
+              <div className="h-[100%] border-r border-r-gray-600 duration-150 dark:border-r-gray-600">
+                <div className="border-b border-b-gray-600 bg-gray-50 p-4 duration-150  dark:bg-gray-800">
+                  <p className="mb-2 select-none text-2xl font-semibold text-gray-800 duration-150 dark:text-white">
+                    GPT Sandbox
                   </p>
                   <div className="flex items-center">
                     {session?.user.image ? (
                       <Image
                         src={(session && session.user.image) || ""}
                         alt="avatar"
-                        className="mr-4 h-10 w-10 rounded-full border-[1.5px] border-gray-900 text-gray-800 dark:border-white dark:text-white"
+                        className="mr-4 h-10 w-10 rounded-full border-[1.5px] border-gray-900 text-gray-800 duration-150 dark:border-white dark:text-white"
                         height={500}
                         width={500}
                       />
                     ) : (
-                      <UserCircleIcon className="relative my-auto mr-2 inline h-10 w-10 rounded-full border-[1.5px] border-gray-900 text-gray-800 dark:border-white dark:text-white sm:mb-1" />
+                      <UserCircleIcon className="relative my-auto mr-2 inline h-10 w-10 rounded-full border-[1.5px] border-gray-900 text-gray-800 duration-150 dark:border-white dark:text-white sm:mb-1" />
                     )}
-                    <p className="text-lg  text-gray-800 dark:text-gray-100">
+                    <p className="text-lg  text-gray-800 duration-150 dark:text-gray-100">
                       {session && "Signed in as "}
                       {session ? session.user.name : "Guest"}
                     </p>
+                    <button
+                      className="ml-auto rounded-xl bg-gpt p-2"
+                      onClick={() => setHistory([])}
+                    >
+                      Clear Conversation
+                    </button>
                   </div>
                 </div>
 
@@ -297,27 +340,51 @@ const Home: NextPage = () => {
                     {history.map((msg, i) => (
                       <div
                         key={i}
-                        className="mt-3 flex flex-col rounded-lg bg-white p-4 dark:bg-gray-700"
+                        className="mb-3 flex flex-col rounded-lg bg-white p-4 duration-150  dark:bg-gray-700"
                       >
                         <div className="flex items-center">
                           {chatSelector(msg[0] || "")}
-                          <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                          <p className="text-sm font-semibold text-gray-700 duration-150 dark:text-gray-200">
                             {msg[0]}:
                           </p>
+                          <div className="ml-auto flex flex-row text-xs font-[400]">
+                            {debug && msg[2] && (
+                              <>
+                                <span className="ml-2">Temp: {msg[2]}</span>
+                                <span className="ml-2">Tokens: {msg[3]}</span>
+                                <span className="ml-2">Top_P: {msg[4]}</span>
+                                <span className="ml-2">
+                                  Frequency: {msg[5]}
+                                </span>
+                              </>
+                            )}
+                          </div>
                         </div>
+
                         <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-                          {msg[1]}
+                          {msg[0] == "gpt-3.5-turbo" || msg[0] == "gpt-4" ? (
+                            <Typewriter
+                              options={{
+                                loop: false,
+                                delay: 20,
+                                cursor: "",
+                                autoStart: true,
+                              }}
+                              onInit={(typewriter) =>
+                                typewriter.typeString(msg[1] || "").start()
+                              }
+                            />
+                          ) : (
+                            msg[1]
+                          )}
                         </p>
                       </div>
                     ))}
-                  </div>{" "}
-                  <p className="mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200">
-                    Chat History
-                  </p>
+                  </div>
                 </div>
               </div>
 
-              <div className="border-t border-t-gray-600 bg-gray-50 p-4 dark:border-t-gray-600 dark:bg-gray-800">
+              <div className="border-t border-t-gray-600 bg-gray-50 p-4 duration-150 dark:border-t-gray-600  dark:bg-gray-800">
                 <form
                   onSubmit={(e) => setSubmission(e)}
                   className="flex items-center"
@@ -325,13 +392,13 @@ const Home: NextPage = () => {
                   <input
                     type="text"
                     placeholder="Type a message..."
-                    className="w-full rounded-lg border border-gray-300 bg-gray-100 py-2 px-4 text-gray-900 focus:outline-none  focus:ring-2 focus:ring-gpt dark:border-gray-700 dark:bg-gray-600 dark:text-gray-200"
+                    className="w-full rounded-lg border  border-gray-300 bg-gray-100 py-2 px-4 text-gray-900 duration-150 focus:outline-none  focus:ring-2 focus:ring-gpt dark:border-gray-700 dark:bg-gray-600 dark:text-gray-200"
                     value={query}
                     onChange={(e) => handleQuery(e.target.value)}
                   />
                   <button
                     type="submit"
-                    className="ml-4 flex items-center rounded-lg bg-gptLight py-3 px-3 text-white duration-150 ease-in-out hover:bg-gpt dark:bg-gpt dark:hover:bg-gptDark lg:px-0 lg:py-2 lg:pl-2 lg:pr-4"
+                    className="ml-4 flex items-center  rounded-lg bg-gptLight py-3 px-3 text-white duration-150 duration-150 ease-in-out hover:bg-gpt dark:bg-gpt dark:hover:bg-gptDark lg:px-0 lg:py-2 lg:pl-2 lg:pr-4"
                   >
                     <Image
                       src="https://cdn.cdnlogo.com/logos/c/38/ChatGPT.svg"
@@ -348,15 +415,15 @@ const Home: NextPage = () => {
               </div>
             </div>
           </section>
-          <section className="scrollbar relative z-10 col-span-2 flex max-h-[calc(100vh-4.05rem)] flex-col gap-4 overflow-y-scroll bg-gray-50 p-4 dark:bg-gray-800 dark:text-white md:text-lg lg:min-h-[calc(100vh-4.05rem)]">
-            <p className="select-none text-2xl font-semibold text-gray-800 dark:text-white">
+          <section className="scrollbar relative z-10 col-span-2 flex max-h-[calc(100vh-4.05rem)] flex-col gap-4 overflow-y-scroll bg-gray-50 p-4 duration-150 dark:bg-gray-800 dark:text-white md:text-lg  lg:min-h-[calc(100vh-4.05rem)]">
+            <p className="select-none text-2xl font-semibold text-gray-800 duration-150 dark:text-white">
               Parameters
             </p>
             <div>
-              <div className="dark:text-white"> Model</div>
+              <div className="duration-150 dark:text-white"> Model</div>
               <select
                 onChange={(e) => handleModels(e)}
-                className="focus:shadow-outline relative block w-full appearance-none rounded-lg border border-gray-400 bg-white px-4 py-2 pr-8 leading-tight shadow hover:border-gray-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                className="focus:shadow-outline relative block w-full appearance-none rounded-lg border border-gray-400 bg-white px-4 py-2 pr-8 leading-tight shadow duration-150 hover:border-gray-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               >
                 <option>gpt-3.5-turbo</option>
 
@@ -379,7 +446,9 @@ const Home: NextPage = () => {
                 <div className="">Temperature</div>
                 <div className="ml-auto pr-4">{temp}</div>
               </div>
-
+              <p className="text-xs italic text-gray-500 dark:text-gray-400">
+                Controls the level of creativity in responses.
+              </p>
               <input
                 type="range"
                 min="0"
@@ -387,7 +456,7 @@ const Home: NextPage = () => {
                 step="0.01"
                 value={temp}
                 onChange={(e) => handleTempChange(e)}
-                className="slider w-full accent-gptDark dark:accent-gptLight"
+                className="slider w-full accent-gptDark duration-150 dark:accent-gptLight"
               />
             </div>
             <div>
@@ -395,7 +464,9 @@ const Home: NextPage = () => {
                 <div className="">Max Tokens</div>
                 <div className="ml-auto pr-4">{tokens}</div>
               </div>
-
+              <p className="text-xs italic text-gray-500 dark:text-gray-400">
+                1 token ≈ 4 characters in English
+              </p>
               <input
                 type="range"
                 min="0"
@@ -403,7 +474,7 @@ const Home: NextPage = () => {
                 step="10"
                 value={tokens}
                 onChange={(e) => handleTokenChange(e)}
-                className="slider w-full accent-gptDark dark:accent-gptLight"
+                className="slider w-full accent-gptDark duration-150 dark:accent-gptLight"
               />
             </div>
             <div>
@@ -411,7 +482,9 @@ const Home: NextPage = () => {
                 <div className="">Frequency Penalty</div>
                 <div className="ml-auto pr-4">{freq}</div>
               </div>
-
+              <p className="text-xs italic text-gray-500 dark:text-gray-400">
+                Controls the level of repetition in responses.
+              </p>
               <input
                 type="range"
                 min="0"
@@ -419,7 +492,7 @@ const Home: NextPage = () => {
                 step="0.01"
                 value={freq}
                 onChange={(e) => handleFreqChange(e)}
-                className="slider w-full accent-gptDark dark:accent-gptLight"
+                className="slider w-full accent-gptDark duration-150 dark:accent-gptLight"
               />
             </div>
             <div>
@@ -427,7 +500,9 @@ const Home: NextPage = () => {
                 <div className="">Top P</div>
                 <div className="ml-auto pr-4">{top_p}</div>
               </div>
-
+              <p className="text-xs italic text-gray-500 dark:text-gray-400">
+                Controls the randomness of the response.
+              </p>
               <input
                 type="range"
                 min="0"
@@ -435,13 +510,40 @@ const Home: NextPage = () => {
                 step="0.01"
                 value={top_p}
                 onChange={(e) => handlePChange(e)}
-                className="slider w-full accent-gptDark dark:accent-gptLight"
+                className="slider w-full accent-gptDark duration-150 dark:accent-gptLight"
               />
+            </div>
+            <div>
+              <div className="flex flex-row ">
+                <div className="">Memorize Conversation</div>
+                <input
+                  type="checkbox"
+                  onChange={() => setMemory(!memory)}
+                  checked
+                  className="ml-auto mt-1 h-6 w-6 accent-gptDark duration-150 dark:accent-gptLight"
+                />
+              </div>
+              <p className="text-xs italic text-gray-500 dark:text-gray-400">
+                ChatGPT will continue your conversations.
+              </p>
+            </div>
+            <div>
+              <div className="flex flex-row ">
+                <div className="">Show Parameters</div>
+                <input
+                  type="checkbox"
+                  onChange={() => setDebug(!debug)}
+                  className="ml-auto mt-1 h-6 w-6 accent-gptDark duration-150 dark:accent-gptLight"
+                />
+              </div>
+              <p className="text-xs italic text-gray-500 dark:text-gray-400">
+                Show what values were sent to the API.
+              </p>
             </div>
           </section>
         </div>
-      </main>
-    </>
+      </div>
+    </main>
   );
 };
 

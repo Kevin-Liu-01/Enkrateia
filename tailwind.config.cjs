@@ -9,6 +9,9 @@ const config = {
       fontFamily: {
         hanken: ["Hanken Grotesk", "Inter"],
         general: ["General Sans", "Inter"],
+        azeret: ["Azeret Mono", "Inter"],
+        clash: ["Clash Grotesk", "Inter"],
+        satoshi: ["Satoshi", "Inter"],
       },
       colors: {
         gpt: "#63b55a",
