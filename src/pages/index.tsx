@@ -14,6 +14,7 @@ import {
   AnnotationIcon,
   ArrowNarrowRightIcon,
   ClockIcon,
+  TrashIcon,
   XIcon,
 } from "@heroicons/react/solid";
 import { env } from "../env.mjs";
@@ -24,11 +25,12 @@ import { Configuration, OpenAIApi } from "openai";
 const configuration = new Configuration({
   apiKey: env.NEXT_PUBLIC_OPENAI_API,
 });
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+delete configuration.baseOptions.headers["User-Agent"];
+
 const openai = new OpenAIApi(configuration);
 
-// const history: string[][] = [];
-
-type Roles = "user" | "assistant" | "system";
+// type Roles = "user" | "assistant" | "system";
 
 const Home: NextPage = () => {
   const { data: session } = useSession();
@@ -42,14 +44,13 @@ const Home: NextPage = () => {
   const [translate, setTranslate] = useState(false);
   const [debug, setDebug] = useState(false);
   const [memory, setMemory] = useState(true);
-  const [speed, setSpeed] = useState(false);
 
   const [history, setHistory] = useState([] as string[][]);
   const [font, setFont] = useState("font-general");
 
   //OpenAI integration
   const [model, setModel] = useState("gpt-3.5-turbo");
-  const [roles, setRoles] = useState<Roles>("user");
+  // const [roles, setRoles] = useState<Roles>("user");
   const [submit, setSubmit] = useState(false);
 
   //request openai from api endpoint
@@ -60,18 +61,18 @@ const Home: NextPage = () => {
           history.length >= 2 && memory
             ? // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
               "The context for this conversation is as follows:" +
-              "\nMy Prompt:" +
-              history.slice(-3)[1] +
-              "\n Your Response:" +
-              history.slice(-2)[1] +
+              "\nMy first Prompt:" +
+              history.slice(-2)?.[0]?.[1] +
+              "\n Your first Response:" +
+              history.slice(-2)?.[1]?.[1] +
               "\n My new prompt:" +
               message +
               "\n Your new response:"
-            : "";
+            : message;
         history.push([session?.user?.name || "Guest", message]);
         const completion = await openai.createChatCompletion({
           model: model,
-          messages: [{ role: roles, content: context }],
+          messages: [{ role: "user", content: context }],
           temperature: parseInt(temp),
           max_tokens: parseInt(tokens),
           top_p: parseInt(top_p),
@@ -91,6 +92,7 @@ const Home: NextPage = () => {
               tokens,
               top_p,
               freq,
+              memory.toString(),
             ], // and one new item at the end
           ]
         );
@@ -98,6 +100,7 @@ const Home: NextPage = () => {
     }
     void fetchData();
     setSubmit(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [submit]);
 
   const handleModels = (event: {
@@ -106,9 +109,9 @@ const Home: NextPage = () => {
     setModel(event.target.value);
   };
 
-  const handleRoles = (event: { target: { value: Roles } }) => {
-    setRoles(event.target.value);
-  };
+  // const handleRoles = (event: { target: { value: Roles } }) => {
+  //   setRoles(event.target.value);
+  // };
 
   const patternBG = () => {
     if (pattern === "cross") {
@@ -327,10 +330,14 @@ const Home: NextPage = () => {
                       {session ? session.user.name : "Guest"}
                     </p>
                     <button
-                      className="ml-auto rounded-xl bg-gpt p-2"
+                      className="ml-auto flex items-center rounded-xl bg-gptLight p-2 text-gray-900 duration-75 hover:bg-gpt dark:bg-gpt dark:text-white dark:hover:bg-gptDark"
                       onClick={() => setHistory([])}
                     >
-                      Clear Conversation
+                      <TrashIcon className="inline h-6 w-6 lg:mr-1" />
+
+                      <span className="hidden lg:inline">
+                        Clear Conversation
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -356,12 +363,15 @@ const Home: NextPage = () => {
                                 <span className="ml-2">
                                   Frequency: {msg[5]}
                                 </span>
+                                <span className="ml-2">
+                                  Memorized: {msg[6]}
+                                </span>
                               </>
                             )}
                           </div>
                         </div>
 
-                        <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                        <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
                           {msg[0] == "gpt-3.5-turbo" || msg[0] == "gpt-4" ? (
                             <Typewriter
                               options={{
@@ -377,7 +387,7 @@ const Home: NextPage = () => {
                           ) : (
                             msg[1]
                           )}
-                        </p>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -398,11 +408,11 @@ const Home: NextPage = () => {
                   />
                   <button
                     type="submit"
-                    className="ml-4 flex items-center  rounded-lg bg-gptLight py-3 px-3 text-white duration-150 duration-150 ease-in-out hover:bg-gpt dark:bg-gpt dark:hover:bg-gptDark lg:px-0 lg:py-2 lg:pl-2 lg:pr-4"
+                    className="ml-4 flex items-center  rounded-lg bg-gptLight py-2 px-2 text-white duration-150 ease-in-out hover:bg-gpt dark:bg-gpt dark:hover:bg-gptDark lg:px-0 lg:py-2 lg:pl-2 lg:pr-4"
                   >
                     <Image
                       src="https://cdn.cdnlogo.com/logos/c/38/ChatGPT.svg"
-                      className=" inline h-4 w-4 sm:mr-1"
+                      className=" inline h-6 w-6 lg:mr-1"
                       height={500}
                       width={500}
                       alt="ChatGPT"
@@ -495,6 +505,7 @@ const Home: NextPage = () => {
                 className="slider w-full accent-gptDark duration-150 dark:accent-gptLight"
               />
             </div>
+
             <div>
               <div className="flex flex-row ">
                 <div className="">Top P</div>
@@ -519,7 +530,7 @@ const Home: NextPage = () => {
                 <input
                   type="checkbox"
                   onChange={() => setMemory(!memory)}
-                  checked
+                  checked={memory}
                   className="ml-auto mt-1 h-6 w-6 accent-gptDark duration-150 dark:accent-gptLight"
                 />
               </div>
@@ -527,6 +538,7 @@ const Home: NextPage = () => {
                 ChatGPT will continue your conversations.
               </p>
             </div>
+
             <div>
               <div className="flex flex-row ">
                 <div className="">Show Parameters</div>

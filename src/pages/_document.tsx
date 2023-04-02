@@ -9,11 +9,11 @@ export default function Document() {
         <title>Enkrateia</title>
         <meta
           name="description"
-          content="Enkrateia allows you to access the power of humanity's sum knowledge."
+          content="Enkrateia allows you to access GPT-3.5-Turbo and GPT-4 through the OPENAI API."
         />
-        <meta content="./favicon.png" property="og:image" />
-        <link rel="icon" href="./favicon.png" />
-        <link rel="apple-touch-icon" href="./favicon.png" />
+        <meta content="./favicon.ico" property="og:image" />
+        <link rel="icon" href="./favicon.ico" />
+        <link rel="apple-touch-icon" href="./favicon.ico" />
         {/*
             Notice the use of %PUBLIC_URL% in the tags above.
             It will be replaced with the URL of the `public` folder during the build.
