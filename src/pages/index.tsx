@@ -22,14 +22,6 @@ import Typewriter from "typewriter-effect";
 import Navbar from "./components/navbar";
 import { Configuration, OpenAIApi } from "openai";
 
-const configuration = new Configuration({
-  apiKey: env.NEXT_PUBLIC_OPENAI_API,
-});
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-delete configuration.baseOptions.headers["User-Agent"];
-
-const openai = new OpenAIApi(configuration);
-
 // type Roles = "user" | "assistant" | "system";
 
 const Home: NextPage = () => {
@@ -44,6 +36,7 @@ const Home: NextPage = () => {
   const [translate, setTranslate] = useState(false);
   const [debug, setDebug] = useState(false);
   const [memory, setMemory] = useState(true);
+  const [apiKey, setAPIKEY] = useState("");
 
   const [history, setHistory] = useState([] as string[][]);
   const [font, setFont] = useState("font-general");
@@ -53,10 +46,17 @@ const Home: NextPage = () => {
   // const [roles, setRoles] = useState<Roles>("user");
   const [submit, setSubmit] = useState(false);
 
+  const configuration = new Configuration({
+    apiKey: apiKey,
+  });
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  delete configuration.baseOptions.headers["User-Agent"];
+
+  const openai = new OpenAIApi(configuration);
   //request openai from api endpoint
   useEffect(() => {
     async function fetchData() {
-      if (submit) {
+      if (submit && apiKey) {
         const context =
           history.length >= 2 && memory
             ? // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
@@ -406,21 +406,36 @@ const Home: NextPage = () => {
                     value={query}
                     onChange={(e) => handleQuery(e.target.value)}
                   />
-                  <button
-                    type="submit"
-                    className="ml-4 flex items-center  rounded-lg bg-gptLight py-2 px-2 text-white duration-150 ease-in-out hover:bg-gpt dark:bg-gpt dark:hover:bg-gptDark lg:px-0 lg:py-2 lg:pl-2 lg:pr-4"
-                  >
-                    <Image
-                      src="https://cdn.cdnlogo.com/logos/c/38/ChatGPT.svg"
-                      className=" inline h-6 w-6 lg:mr-1"
-                      height={500}
-                      width={500}
-                      alt="ChatGPT"
-                    />
-                    <div className="hidden text-base text-gray-900 sm:inline">
-                      Send
-                    </div>
-                  </button>
+                  {apiKey ? (
+                    <button
+                      type="submit"
+                      className="ml-4 flex items-center  rounded-lg bg-gptLight py-2 px-2 text-white duration-150 ease-in-out hover:bg-gpt dark:bg-gpt dark:hover:bg-gptDark lg:px-0 lg:py-2 lg:pl-2 lg:pr-4"
+                    >
+                      <Image
+                        src="https://cdn.cdnlogo.com/logos/c/38/ChatGPT.svg"
+                        className=" inline h-6 w-6 lg:mr-1"
+                        height={500}
+                        width={500}
+                        alt="ChatGPT"
+                      />
+                      <div className="hidden text-base text-gray-900 sm:inline">
+                        Send
+                      </div>
+                    </button>
+                  ) : (
+                    <button className="ml-4 flex items-center rounded-lg bg-gptLight py-2 px-2 text-white opacity-50 duration-150 ease-in-out  dark:bg-gpt lg:px-0 lg:py-2 lg:pl-2 lg:pr-4">
+                      <Image
+                        src="https://cdn.cdnlogo.com/logos/c/38/ChatGPT.svg"
+                        className=" inline h-6 w-6 lg:mr-1"
+                        height={500}
+                        width={500}
+                        alt="ChatGPT"
+                      />
+                      <div className="hidden text-base text-gray-900 sm:inline">
+                        Send
+                      </div>
+                    </button>
+                  )}
                 </form>
               </div>
             </div>
@@ -429,6 +444,19 @@ const Home: NextPage = () => {
             <p className="select-none text-2xl font-semibold text-gray-800 duration-150 dark:text-white">
               Parameters
             </p>
+            <div>
+              <div className="duration-150 dark:text-white">
+                {" "}
+                Enter your API Key
+              </div>
+              <input
+                onChange={(e) => setAPIKEY(e.target.value)}
+                className="focus:shadow-outline relative block w-full appearance-none rounded-lg border border-gray-400 bg-white px-4 py-2 pr-8 leading-tight shadow duration-150 hover:border-gray-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                placeholder="API Key"
+                value={apiKey}
+                maxLength={51}
+              />
+            </div>
             <div>
               <div className="duration-150 dark:text-white"> Model</div>
               <select

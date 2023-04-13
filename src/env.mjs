@@ -32,7 +32,7 @@ const server = z.object({
  */
 const client = z.object({
   // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
-  NEXT_PUBLIC_OPENAI_API: z.string().min(1),
+  // NEXT_PUBLIC_OPENAI_API: z.string().min(1),
 });
 
 /**
@@ -50,7 +50,7 @@ const processEnv = {
   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-  NEXT_PUBLIC_OPENAI_API: process.env.NEXT_PUBLIC_OPENAI_API,
+  // NEXT_PUBLIC_OPENAI_API: process.env.NEXT_PUBLIC_OPENAI_API,
 };
 
 // Don't touch the part below
