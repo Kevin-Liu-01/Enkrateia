@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { type NextPage } from "next";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
@@ -29,16 +30,16 @@ const Home: NextPage = () => {
   const [pattern, setPattern] = useState("cross");
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
-  const [temp, setTemp] = useState("0");
-  const [tokens, setTokens] = useState("256");
-  const [freq, setFreq] = useState("0");
-  const [top_p, setTop_P] = useState("1");
+  const [temp, setTemp] = useLocalStorage("TEMP", "0");
+  const [tokens, setTokens] = useLocalStorage("TOKENS", "256");
+  const [freq, setFreq] = useLocalStorage("FREQ", "0");
+  const [top_p, setTop_P] = useLocalStorage("P", "1");
   const [translate, setTranslate] = useState(false);
   const [debug, setDebug] = useState(false);
   const [memory, setMemory] = useState(true);
-  const [apiKey, setAPIKEY] = useState("");
+  const [apiKey, setAPIKEY] = useLocalStorage("KEY", "");
 
-  const [history, setHistory] = useState([] as string[][]);
+  const [history, setHistory] = useLocalStorage("MESSAGES", [] as string[][]);
   const [font, setFont] = useState("font-general");
 
   //OpenAI integration
@@ -409,6 +410,7 @@ const Home: NextPage = () => {
                   {apiKey ? (
                     <button
                       type="submit"
+                      disabled={message === ""}
                       className="ml-4 flex items-center  rounded-lg bg-gptLight py-2 px-2 text-white duration-150 ease-in-out hover:bg-gpt dark:bg-gpt dark:hover:bg-gptDark lg:px-0 lg:py-2 lg:pl-2 lg:pr-4"
                     >
                       <Image
@@ -588,3 +590,42 @@ const Home: NextPage = () => {
 };
 
 export default Home;
+
+function useLocalStorage<T>(key: string, initialValue: T) {
+  // State to store our value
+  // Pass initial state function to useState so logic is only executed once
+  const [storedValue, setStoredValue] = useState<T>(() => {
+    if (typeof window === "undefined") {
+      return initialValue;
+    }
+    try {
+      // Get from local storage by key
+      const item = window.localStorage.getItem(key);
+      // Parse stored json or if none return initialValue
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      // If error also return initialValue
+      console.log(error);
+      return initialValue;
+    }
+  });
+  // Return a wrapped version of useState's setter function that ...
+  // ... persists the new value to localStorage.
+  const setValue = (value: T | ((val: T) => T)) => {
+    try {
+      // Allow value to be a function so we have same API as useState
+      const valueToStore =
+        value instanceof Function ? value(storedValue) : value;
+      // Save state
+      setStoredValue(valueToStore);
+      // Save to local storage
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(key, JSON.stringify(valueToStore));
+      }
+    } catch (error) {
+      // A more advanced implementation would handle the error case
+      console.log(error);
+    }
+  };
+  return [storedValue, setValue] as const;
+}
